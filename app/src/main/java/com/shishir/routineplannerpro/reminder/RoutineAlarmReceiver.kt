@@ -1,12 +1,15 @@
 package com.shishir.routineplannerpro.reminder
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.shishir.routineplannerpro.MainActivity
@@ -50,7 +53,18 @@ class RoutineAlarmReceiver : BroadcastReceiver() {
             .setFullScreenIntent(pendingIntent, mode == "ALARM")
             .build()
 
-        NotificationManagerCompat.from(context).notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        NotificationManagerCompat
+            .from(context)
+            .notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notification)
     }
 
     private fun createChannels(context: Context) {
