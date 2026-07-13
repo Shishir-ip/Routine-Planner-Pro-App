@@ -1,50 +1,88 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+package com.shishir.routineplannerpro.reminder
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.INTERNET" />
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.shishir.routineplannerpro.MainActivity
+import com.shishir.routineplannerpro.R
 
-    <application
-        android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="Routine Planner Pro"
-        android:roundIcon="@mipmap/ic_launcher"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.RoutinePlannerPro">
+class RoutineAlarmReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val title = intent.getStringExtra("title").orEmpty()
+        val time = intent.getStringExtra("startTime").orEmpty()
+        val mode = intent.getStringExtra("mode") ?: "REMINDER"
 
-        <receiver
-            android:name=".reminder.RoutineAlarmReceiver"
-            android:exported="false" />
+        createChannels(context)
 
-        <receiver
-            android:name=".reminder.BootReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        if (mode == "ALARM") {
+            val alarmIntent = Intent(context, AlarmAlertActivity::class.java).apply {
+                putExtra("title", title)
+                putExtra("time", time)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(alarmIntent)
+        }
 
-        <activity
-            android:name=".reminder.AlarmAlertActivity"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:showOnLockScreen="true"
-            android:turnScreenOn="true"
-            android:theme="@style/Theme.RoutinePlannerPro" />
+        val launchIntent = Intent(context, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            1000,
+            launchIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        val channelId = if (mode == "ALARM") "routine_alarm" else "routine_reminder"
+        val text = if (mode == "ALARM") "Alarm time reached for $title" else "$title starts at $time"
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Routine Planner Pro - $mode")
+            .setContentText(text)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setFullScreenIntent(pendingIntent, mode == "ALARM")
+            .build()
 
-</manifest>
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        NotificationManagerCompat
+            .from(context)
+            .notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notification)
+    }
+
+    private fun createChannels(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = context.getSystemService(NotificationManager::class.java)
+
+        val reminder = NotificationChannel(
+            "routine_reminder",
+            "Routine Reminders",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val alarm = NotificationChannel(
+            "routine_alarm",
+            "Routine Alarms",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+
+        manager.createNotificationChannel(reminder)
+        manager.createNotificationChannel(alarm)
+    }
+}
