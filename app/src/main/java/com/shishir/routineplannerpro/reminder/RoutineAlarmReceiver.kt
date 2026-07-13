@@ -71,8 +71,16 @@ class RoutineAlarmReceiver : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java)
 
-        val reminder = NotificationChannel("routine_reminder", "Routine Reminders", NotificationManager.IMPORTANCE_HIGH)
-        val alarm = NotificationChannel("routine_alarm", "Routine Alarms", NotificationManager.IMPORTANCE_HIGH)
+        val reminder = NotificationChannel(
+            "routine_reminder",
+            "Routine Reminders",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val alarm = NotificationChannel(
+            "routine_alarm",
+            "Routine Alarms",
+            NotificationManager.IMPORTANCE_HIGH
+        )
 
         manager.createNotificationChannel(reminder)
         manager.createNotificationChannel(alarm)
