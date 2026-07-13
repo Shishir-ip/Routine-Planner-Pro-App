@@ -22,18 +22,33 @@ android {
         }
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file(System.getenv("ANDROID_KEYSTORE_PATH") ?: "")
-            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("ANDROID_KEY_ALIAS")
-            keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+    // Check if environment variables are available for production signing
+    val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+    val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    val keyAliasEnv = System.getenv("ANDROID_KEY_ALIAS")
+    val keyPasswordEnv = System.getenv("ANDROID_KEY_PASSWORD")
+
+    val hasSigning = !keystorePath.isNullOrBlank() &&
+            !keystorePassword.isNullOrBlank() &&
+            !keyAliasEnv.isNullOrBlank() &&
+            !keyPasswordEnv.isNullOrBlank()
+
+    if (hasSigning) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystorePath!!)
+                storePassword = keystorePassword
+                keyAlias = keyAliasEnv
+                keyPassword = keyPasswordEnv
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            if (hasSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -41,6 +56,7 @@ android {
             )
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
