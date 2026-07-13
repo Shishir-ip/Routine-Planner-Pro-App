@@ -37,6 +37,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -49,7 +50,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -484,7 +484,7 @@ private fun SettingsDialog(viewModel: AppViewModel, state: AppUiState, onDismiss
                     Switch(checked = dark, onCheckedChange = viewModel::toggleTheme)
                 }
 
-                Divider()
+                HorizontalDivider()
                 Text("OpenRouter API key")
                 OutlinedTextField(
                     value = apiInput,
@@ -499,7 +499,7 @@ private fun SettingsDialog(viewModel: AppViewModel, state: AppUiState, onDismiss
                     OutlinedButton(onClick = { viewModel.deleteApiKey(); apiInput = "" }) { Text("Delete key") }
                 }
 
-                Divider()
+                HorizontalDivider()
                 Text("Routine export/import (JSON)")
                 OutlinedButton(onClick = { exportRoutineExpanded = true }) {
                     Text(selectedExport?.name ?: "Select routine")
@@ -535,7 +535,7 @@ private fun SettingsDialog(viewModel: AppViewModel, state: AppUiState, onDismiss
                 )
                 Button(onClick = { viewModel.importRoutineJson(importJson) }) { Text("Import JSON") }
 
-                Divider()
+                HorizontalDivider()
                 Text("AI Generator (OpenRouter free model)")
                 OutlinedTextField(value = aiPrompt, onValueChange = { aiPrompt = it }, label = { Text("Describe routines in natural language") }, modifier = Modifier.fillMaxWidth())
                 Button(onClick = {
@@ -546,7 +546,7 @@ private fun SettingsDialog(viewModel: AppViewModel, state: AppUiState, onDismiss
                 OutlinedTextField(value = aiOutput, onValueChange = { aiOutput = it }, label = { Text("AI JSON output") }, modifier = Modifier.fillMaxWidth().height(140.dp))
                 Button(onClick = { viewModel.importAiJson(aiOutput) }) { Text("Import generated JSON") }
 
-                Divider()
+                HorizontalDivider()
                 Text("Developer: Shishir", fontWeight = FontWeight.SemiBold)
                 Text("GitHub: https://github.com/Shishir-ip")
             }

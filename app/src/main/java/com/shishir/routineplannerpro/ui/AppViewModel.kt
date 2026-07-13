@@ -13,6 +13,7 @@ import com.shishir.routineplannerpro.network.OpenRouterService
 import com.shishir.routineplannerpro.reminder.ReminderScheduler
 import com.shishir.routineplannerpro.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -160,10 +161,10 @@ class AppViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             openRouterService.generateJson(apiKey.value, prompt)
                 .onSuccess {
-                    onResult(it, null)
+                    withContext(Dispatchers.Main) { onResult(it, null) }
                 }
                 .onFailure {
-                    onResult(null, it.message ?: "Unknown error")
+                    withContext(Dispatchers.Main) { onResult(null, it.message ?: "Unknown error") }
                 }
         }
     }

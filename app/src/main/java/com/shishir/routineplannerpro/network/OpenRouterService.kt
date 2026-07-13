@@ -1,7 +1,6 @@
 package com.shishir.routineplannerpro.network
 
 import com.shishir.routineplannerpro.model.AiRoutineOutput
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
