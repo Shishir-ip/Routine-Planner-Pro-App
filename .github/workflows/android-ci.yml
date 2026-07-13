@@ -30,8 +30,18 @@ jobs:
       - name: Build and test (debug)
         run: ./gradlew lint test assembleDebug
 
-      - name: Build release APK
+      - name: Decode keystore
         if: github.event_name == 'push'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/upload-keystore.jks
+
+      - name: Build signed release APK
+        if: github.event_name == 'push'
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
       - name: Create tag
@@ -47,6 +57,6 @@ jobs:
           name: Release ${{ steps.tag.outputs.value }}
           generate_release_notes: true
           files: |
-            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
